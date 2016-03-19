@@ -62,10 +62,10 @@ def fast a, b
   a.length.times do |a_position|
     loop do
       case a.shift <=> b_val
-      when nil, -1
-        break
       when 0
         shared << b_val
+        break
+      else
         break
       end
       b_val = b.shift
