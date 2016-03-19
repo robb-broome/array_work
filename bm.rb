@@ -57,32 +57,18 @@ def slow a, b
 end
 
 def fast a, b
-  b_position = 0
-  match_count = 0
-  try_count = 0
   shared = []
-  puts
-  puts "fast            Trying               Matched     Current Match"
+  b_val = b.shift
   a.length.times do |a_position|
-    STDOUT.write "\r#{try_count += 1}"
-
     loop do
-      b_val = b[b_position]
-
       case a.shift <=> b_val
-      when nil
-        break
-      when -1
+      when nil, -1
         break
       when 0
-        match_count += 1
-        STDOUT.write "\r                                 #{match_count}            #{b_val} "
         shared << b_val
-        b_position += 1
         break
-      when 1
-        b_position += 1
       end
+      b_val = b.shift
     end
   end
 end
