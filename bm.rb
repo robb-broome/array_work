@@ -59,16 +59,21 @@ end
 def fast a, b
   shared = []
   b_val = b.shift
-  a.length.times do |a_position|
+  loop do
     loop do
       case a.shift <=> b_val
+      when 1
+        # B is bigger, try the next a
       when 0
+        # equal, use the b value, go to next b
         shared << b_val
         break
-      else
+      when -1
+        # a is bigger, so, don't change a but go to the next b
         break
       end
-      b_val = b.shift
+      break if a.nil?
     end
   end
+  puts shared
 end
