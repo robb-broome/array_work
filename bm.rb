@@ -2,16 +2,18 @@ require 'benchmark'
 require 'pry'
 def bm(times =1)
   runtime = 0
+  ans = []
   times.times do
     runtime += Benchmark.realtime do
-      yield
+      ans = yield
       # puts yield.join(',')
     end
   end
   time = (runtime / times * 1_000_000).round( 2 )
-  time = time.to_s.reverse.gsub(/(\d{3})(?=\d)/, '\\1,').reverse
-  puts ""
-  puts  time + " microseconds. (n=#{times})"
+  [ans, time]
+  # time = time.to_s.reverse.gsub(/(\d{3})(?=\d)/, '\\1,').reverse
+  # puts ""
+  # puts  time + " microseconds. (n=#{times})"
 end
 
 def ar n
@@ -21,37 +23,40 @@ def ar n
   try = 0
   loop do
     break if array.size == n
-    array << try = rndm.rand( try..(try + space) )
+    array << try = rndm.rand( (try + 1)..(try + space) )
   end
   array
 end
 
-def arsim n, technique = [:fast]
+def arsim n, technique = [:slow, :fast]
   a = ar(n)
   b = ar(n)
+  c = a.dup
+  d = b.dup
 
   # puts "a is #{a.join(',')}"
   # puts "b is #{b.join(',')}"
   puts "setup complete"
 
-  bm {slow(a, b)} if technique.include? :slow
-  bm {fast(a, b)} if technique.include? :fast
+  run1_result, run1_time = bm {slow(a, b)} if technique.include? :slow
+  run2_result, run2_time = bm {fast(c, d)} if technique.include? :fast
+
+  if run1_result != run2_result
+    puts 'answers did not match'
+    puts run1_result.inspect
+    puts run2_result.inspect
+    puts run1_result - run2_result
+  end
+
+  [run1_time, run2_time, (run1_time/run2_time).round(0)]
 end
 
 def slow a, b
-  b_position = 0
-  match_count = 0
-  try_count = 0
-  shared = []
-  puts "slow            Trying               Matched     Current Match"
-  a.length.times do |a_position|
-    a_val = a[a_position]
-    STDOUT.write "\r#{try_count += 1}            #{a_val}"
-
-    if b.include?(a_val)
-      shared << a_val 
-      match_count += 1
-      STDOUT.write "\r                                 #{match_count}            #{a_val} "
+  [].tap do |shared|
+    loop do
+      break unless a_val = a.shift
+      # STDOUT.write "\r#{a_val}"
+      shared << a_val if b.include?(a_val)
     end
   end
 end
@@ -60,20 +65,24 @@ def fast a, b
   shared = []
   b_val = b.shift
   loop do
+    break unless a_val = a.shift
     loop do
-      case a.shift <=> b_val
-      when 1
-        # B is bigger, try the next a
-      when 0
-        # equal, use the b value, go to next b
-        shared << b_val
+      case a_val <=> b_val
+      when nil
         break
       when -1
-        # a is bigger, so, don't change a but go to the next b
+        # B is bigger, try the next a
         break
+      when 0
+        # equal, use the b value, go to next a and b
+        shared << b_val
+        b_val = b.shift
+        break
+      when 1
+        # a is bigger, so, don't change a but go to the next b
+        b_val = b.shift
       end
-      break if a.nil?
     end
   end
-  puts shared
+  shared
 end
