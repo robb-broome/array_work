@@ -43,12 +43,15 @@ def arsim n, technique = [:slow, :fast]
 
   if run1_result != run2_result
     puts 'answers did not match'
-    puts run1_result.inspect
-    puts run2_result.inspect
-    puts run1_result - run2_result
+    puts run1_result.inspect if technique.include? :slow
+    puts run2_result.inspect if technique.include? :fast
+    puts run1_result - run2_result if technique.include?(:slow) & technique.include?(:fast)
   end
-
+if technique.include?(:slow) & technique.include?(:fast)
   [run1_time, run2_time, (run1_time/run2_time).round(0)]
+else
+  run2_time
+end
 end
 
 def slow a, b
